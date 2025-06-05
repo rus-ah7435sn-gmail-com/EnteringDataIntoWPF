@@ -10,7 +10,7 @@ namespace MyPrismApp
     {
         protected override Window CreateShell()
         {
-            return Container.Resolve<MainWindow>();
+            return this.Container.Resolve<MainWindow>();
         }
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
@@ -57,7 +57,9 @@ namespace MyPrismApp
         {
             base.OnInitialized();
 
-            var regionManager = Container.Resolve<Prism.Regions.IRegionManager>();
+            // Доступ к контейнеру здесь также может быть через this.Container для единообразия,
+            // но Container напрямую тоже доступен как свойство базового класса.
+            var regionManager = this.Container.Resolve<Prism.Regions.IRegionManager>();
 
             // Начальная загрузка Views в соответствующие регионы
             regionManager.RequestNavigate("RegionTextField1", nameof(TextFieldView1));
