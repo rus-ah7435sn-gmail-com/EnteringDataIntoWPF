@@ -21,7 +21,7 @@ namespace MyPrismApp.ViewModels
             _eventAggregator = eventAggregator;
             _mainViewModel = mainViewModel;
 
-            _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Subscribe(OnSharedInputTextChanged);
+            _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Subscribe(OnSharedInputTextChanged, ThreadOption.UIThread);
         }
 
         private void OnSharedInputTextChanged(string newText)
