@@ -13,6 +13,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -31,6 +32,9 @@
 
         <Label Content="Disabled Text Region:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
         <ContentControl prism:RegionManager.RegionName="RegionDisabledTextField" Grid.Row="3" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Поле ввода Region:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
+        <ContentControl prism:RegionManager.RegionName="RegionInputField" Grid.Row="4" Grid.Column="1" Margin="5"/>
 
         <!-- Опционально: можно раскомментировать, если ContentRegion из первоначальной настройки все еще нужен -->
         <!-- <Label Content="Original Content Region:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/> -->

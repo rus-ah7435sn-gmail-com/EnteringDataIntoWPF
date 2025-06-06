@@ -5,10 +5,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:MyPrismApp.Views"
              xmlns:prism="http://prismlibrary.com/"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              prism:ViewModelLocator.AutoWireViewModel="True"
              mc:Ignorable="d"
              d:DesignHeight="50" d:DesignWidth="300">
     <Grid>
-        <TextBox Text="{Binding TextValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" />
+        <TextBox Text="{Binding TextValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="GotFocus">
+                    <i:ChangePropertyAction TargetObject="{Binding}" PropertyName="IsFocused" Value="True"/>
+                </i:EventTrigger>
+                <i:EventTrigger EventName="LostFocus">
+                    <i:ChangePropertyAction TargetObject="{Binding}" PropertyName="IsFocused" Value="False"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </TextBox>
     </Grid>
 </UserControl>

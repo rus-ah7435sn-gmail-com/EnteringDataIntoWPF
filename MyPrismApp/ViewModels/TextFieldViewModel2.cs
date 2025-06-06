@@ -1,9 +1,14 @@
 using Prism.Mvvm;
+using Prism.Events;
+using MyPrismApp.ViewModels.Events;
 
 namespace MyPrismApp.ViewModels
 {
     public class TextFieldViewModel2 : BindableBase
     {
+        private readonly IEventAggregator _eventAggregator;
+        private MainViewModel _mainViewModel;
+
         private string _textValue = string.Empty;
         public string TextValue
         {
@@ -11,9 +16,32 @@ namespace MyPrismApp.ViewModels
             set { SetProperty(ref _textValue, value); }
         }
 
-        public TextFieldViewModel2()
+        private bool _isFocused;
+        public bool IsFocused
         {
-            // TextValue уже инициализирован string.Empty при объявлении
+            get => _isFocused;
+            set
+            {
+                if (SetProperty(ref _isFocused, value))
+                {
+                    _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(_isFocused);
+                }
+            }
+        }
+
+        public TextFieldViewModel2(IEventAggregator eventAggregator, MainViewModel mainViewModel)
+        {
+            _eventAggregator = eventAggregator;
+            _mainViewModel = mainViewModel;
+            _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Subscribe(OnSharedInputTextChanged);
+        }
+
+        private void OnSharedInputTextChanged(string newText)
+        {
+            if (_mainViewModel.ActiveInputTarget == 1)
+            {
+                TextValue = newText;
+            }
         }
     }
 }

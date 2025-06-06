@@ -1,8 +1,10 @@
+using Prism.DryIoc;
 using Prism.Ioc;
-using Prism.Unity; // Изменено на Prism.Unity
+using Prism.Modularity;
+using Prism.Regions;
 using System.Windows;
 using MyPrismApp.Views;
-using MyPrismApp.ViewModels; // Добавлено для явной регистрации ViewModel, если потребуется
+using MyPrismApp.ViewModels;
 
 namespace MyPrismApp
 {
@@ -10,66 +12,33 @@ namespace MyPrismApp
     {
         protected override Window CreateShell()
         {
-            return this.Container.Resolve<MainWindow>();
+            return Container.Resolve<MainWindow>();
         }
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            // Регистрируем MainView для навигации.
-            // Prism автоматически свяжет MainView с MainViewModel по соглашению (если ViewModelLocator.AutoWireViewModel="True" в XAML)
-            // или можно зарегистрировать их явно:
-            // containerRegistry.RegisterForNavigation<MainView, MainViewModel>();
-            // containerRegistry.RegisterForNavigation<MainView>(); // Закомментировано, т.к. MainView больше не используется напрямую для навигации в ContentRegion
-
-            // Регистрация Views для текстовых полей.
-            // Это позволяет Prism создавать экземпляры этих View и внедрять их в регионы.
-            // ViewModels для этих View (например, TextFieldViewModel1) будут автоматически найдены и связаны
-            // благодаря ViewModelLocator.AutoWireViewModel="True" в XAML каждого View.
-            containerRegistry.RegisterForNavigation<TextFieldView1>();
-            containerRegistry.RegisterForNavigation<TextFieldView2>();
-            containerRegistry.RegisterForNavigation<TextFieldView3>();
-            containerRegistry.RegisterForNavigation<DisabledTextFieldView>();
-
-            // Prism автоматически регистрирует многие свои сервисы, такие как IRegionManager, IEventAggregator и т.д.
-            // Явная регистрация ViewModel обычно не требуется, если они следуют соглашениям об именовании
-            // и не требуют сложной логики создания экземпляров.
-
-            // Здесь следует регистрировать любые пользовательские сервисы, необходимые для приложения.
-            // Например:
-            // containerRegistry.RegisterSingleton<IMyService, MyService>();
-            // containerRegistry.Register<IOtherService, OtherService>();
+            containerRegistry.RegisterSingleton<MainViewModel>();
+            // ViewModelLocator автоматически разрешит зависимости для ViewModel, создаваемых для View в регионах,
+            // если MainViewModel зарегистрирован как синглтон.
+            // EventAggregator уже зарегистрирован Prism.
         }
 
-        protected override void ConfigureModuleCatalog(Prism.Modularity.IModuleCatalog moduleCatalog)
+        protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
         {
-            // Здесь можно будет регистрировать модули, если приложение будет модульным
             base.ConfigureModuleCatalog(moduleCatalog);
         }
 
-        // Используем UnityContainerExtension
-        protected override IContainerExtension CreateContainerExtension()
-        {
-            return new UnityContainerExtension();
-        }
-
-        // Этот метод вызывается после инициализации оболочки (MainWindow)
         protected override void OnInitialized()
         {
             base.OnInitialized();
 
-            // Доступ к контейнеру здесь также может быть через this.Container для единообразия,
-            // но Container напрямую тоже доступен как свойство базового класса.
-            var regionManager = this.Container.Resolve<Prism.Regions.IRegionManager>();
+            var regionManager = Container.Resolve<IRegionManager>();
 
-            // Начальная загрузка Views в соответствующие регионы
-            regionManager.RequestNavigate("RegionTextField1", nameof(TextFieldView1));
-            regionManager.RequestNavigate("RegionTextField2", nameof(TextFieldView2));
-            regionManager.RequestNavigate("RegionTextField3", nameof(TextFieldView3));
-            regionManager.RequestNavigate("RegionDisabledTextField", nameof(DisabledTextFieldView));
-
-            // Убедимся, что старая навигация к ContentRegion закомментирована или удалена
-            // var navigationService = Container.Resolve<Prism.Regions.IRegionManager>(); // Это дублирует regionManager выше
-            // navigationService.RequestNavigate("ContentRegion", nameof(MainView));
+            regionManager.RegisterViewWithRegion("RegionTextField1", typeof(TextFieldView1));
+            regionManager.RegisterViewWithRegion("RegionTextField2", typeof(TextFieldView2));
+            regionManager.RegisterViewWithRegion("RegionTextField3", typeof(TextFieldView3));
+            regionManager.RegisterViewWithRegion("RegionDisabledTextField", typeof(DisabledTextFieldView));
+            regionManager.RegisterViewWithRegion("RegionInputField", typeof(InputFieldView));
         }
     }
 }

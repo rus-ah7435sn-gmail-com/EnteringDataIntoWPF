@@ -1,139 +1,78 @@
+using Prism.Events;
+using MyPrismApp.ViewModels;
+using MyPrismApp.ViewModels.Events;
 using System.Windows;
-using System.Windows.Controls; // Required for TextBox, UserControl
-using System.Windows.Input;  // Required for InputEventArgs and FocusManager
-using System.Windows.Media;  // Required for VisualTreeHelper
-using MyPrismApp.ViewModels; // Required for DisabledTextFieldViewModel
-using MyPrismApp.Views;    // Required for view types if checking them
-using Prism.Regions;
+using System.Windows.Controls; // Для TextBox
+using System.Windows.Input;   // Для Keyboard, FocusManager, MouseButtonEventArgs
 
 namespace MyPrismApp
 {
     public partial class MainWindow : Window
     {
-        private readonly IRegionManager _regionManager;
-        private readonly string[] _activeInputRegionNames =
-        {
-            "RegionTextField1",
-            "RegionTextField2",
-            "RegionTextField3"
-        };
+        private readonly IEventAggregator _eventAggregator;
+        private readonly MainViewModel _mainViewModel;
 
-        public MainWindow(IRegionManager regionManager)
+        public MainWindow(IEventAggregator eventAggregator, MainViewModel mainViewModel)
         {
             InitializeComponent();
-            _regionManager = regionManager;
-            this.PreviewTextInput += Window_PreviewTextInput;
+            _eventAggregator = eventAggregator;
+            _mainViewModel = mainViewModel;
+
+            this.Loaded += MainWindow_Loaded;
+            this.PreviewMouseLeftButtonDown += MainWindow_PreviewMouseLeftButtonDown;
         }
 
-        private void Window_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            IInputElement? focusedElement = FocusManager.GetFocusedElement(this);
+            // Убираем фокус с любого элемента при запуске
+            FocusManager.SetFocusedElement(this, this); // Фокус на само окно
+            Keyboard.ClearFocus(); // Очищаем логический фокус
 
-            if (focusedElement is DependencyObject focusedDependencyObject)
-            {
-                if (IsFocusInActiveInputRegions(focusedDependencyObject))
-                {
-                    // Фокус на TextBox внутри одного из активных регионов, ничего не делаем.
-                    return;
-                }
-            }
-
-            // Фокус не в активном регионе или focusedElement is null
-            // Добавляем текст в DisabledTextFieldViewModel
-            var disabledViewRegion = _regionManager.Regions.ContainsRegionWithName("RegionDisabledTextField")
-                                     ? _regionManager.Regions["RegionDisabledTextField"]
-                                     : null;
-            if (disabledViewRegion != null)
-            {
-                // Получаем активное View в регионе. Это должен быть DisabledTextFieldView.
-                var disabledView = disabledViewRegion.ActiveViews.FirstOrDefault() as FrameworkElement; // UserControl / DisabledTextFieldView
-                if (disabledView != null && disabledView.DataContext is DisabledTextFieldViewModel disabledViewModel)
-                {
-                    disabledViewModel.AppendText(e.Text);
-                    e.Handled = true;
-                }
-            }
+            // Убедимся, что MainViewModel знает, что активных полей нет
+            // Это уже должно быть так по инициализации ActiveInputTarget = 0,
+            // но на всякий случай можно опубликовать событие, если это необходимо.
+            // _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(false);
+            // Однако, это может быть излишним и вызвать ненужные обновления.
+            // Инициализации ActiveInputTarget = 0 в MainViewModel должно быть достаточно.
         }
 
-        private bool IsFocusInActiveInputRegions(DependencyObject focusedElement)
+        private void MainWindow_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Проходим вверх по визуальному дереву от элемента с фокусом
-            DependencyObject? currentElement = focusedElement;
-
-            // Мы ищем TextBox внутри одного из наших UserControls (TextFieldView1,2,3)
-            // Сначала убедимся, что сам элемент с фокусом - это TextBox
-            if (!(currentElement is TextBox))
+            if (!(e.OriginalSource is TextBox))
             {
-                // Если фокус не на TextBox, то он точно не в одном из наших активных TextBox'ов
-                // Однако, он может быть на самом UserControl, если тот как-то может получать фокус.
-                // Для простоты, будем считать, что нас интересует только фокус на TextBox внутри UserControl.
-                // Если currentElement это UserControl, то надо проверить его родительский регион.
-            }
+                // Если клик был не на TextBox из наших регионов или InputField,
+                // то это считается кликом "вне" целевых полей.
+                var currentFocusedElement = FocusManager.GetFocusedElement(this);
+                bool wasOurTextBoxFocused = false;
 
-            while (currentElement != null)
-            {
-                // Проверяем, является ли текущий элемент ContentControl, который хостит регион
-                if (currentElement is ContentControl regionHost)
+                if (currentFocusedElement is TextBox textBox)
                 {
-                    string? regionName = RegionManager.GetRegionName(regionHost);
-                    if (regionName != null && _activeInputRegionNames.Contains(regionName))
-                    {
-                        // Элемент с фокусом (или его родитель TextBox) находится внутри ContentControl,
-                        // который является одним из наших активных регионов.
-                        // Теперь нужно убедиться, что сам focusedElement (или его родитель, если focusedElement - часть TextBox)
-                        // является TextBox. Это можно сделать более строгой проверкой,
-                        // убедившись, что focusedElement является потомком UserControl (TextFieldView1/2/3),
-                        // который в свою очередь содержит TextBox.
-
-                        // Для упрощения: если мы нашли родительский регион, который активен,
-                        // и изначальный focusedElement был TextBox (или его часть), то считаем, что это наш случай.
-                        // focusedElement уже проверен (или должен быть проверен более тщательно) на то, что это TextBox.
-                        // Если focusedElement - это, например, сам UserControl (TextFieldView1), то currentElement == regionHost не будет,
-                        // т.к. UserControl сам загружен ВНУТРЬ regionHost.
-
-                        // Более точная проверка:
-                        // 1. Найти родительский UserControl для focusedElement.
-                        // 2. Проверить тип этого UserControl (TextFieldView1, TextFieldView2, TextFieldView3).
-                        // 3. Если тип совпадает, то фокус в активном регионе.
-
-                        var parentUserControl = FindParent<UserControl>(focusedElement);
-                        if (parentUserControl is TextFieldView1 ||
-                            parentUserControl is TextFieldView2 ||
-                            parentUserControl is TextFieldView3)
-                        {
-                             // И при этом этот UserControl должен быть внутри одного из активных регионов
-                             // Это уже проверяется через regionHost и regionName выше, если currentElement дошел до ContentControl региона
-                             // Но currentElement (regionHost) это родитель для parentUserControl.
-                             // Эта логика становится сложной.
-
-                            // Упрощенный подход: если focusedElement это TextBox, и его родительский регион - активный.
-                            if (focusedElement is TextBox) return true;
-
-                            // Если сам focusedElement - это UserControl одного из нужных типов.
-                            // Это менее вероятно, т.к. фокус обычно на TextBox внутри UserControl.
-                            // if (parentUserControl != null && regionHost == GetParentRegionHost(parentUserControl)) return true;
-
-                        }
-                         // Если мы дошли до ContentControl, который является одним из наших активных регионов,
-                         // и focusedElement (который должен быть TextBox или его частью) находится внутри этого региона.
-                         return true;
-                    }
+                    // Проверить, относится ли этот TextBox к TextFieldView1/2/3
+                    // Это можно сделать, проверяя DataContext TextBox или его родительских элементов.
+                    // Для простоты, если любой TextBox теряет фокус из-за клика не по TextBox,
+                    // мы считаем, что TextField-ы теряют "активность" для ввода из MainInput.
+                    // Это поведение уже обрабатывается через IsFocused свойство в TextFieldViewModel1/2/3
+                    // и публикацию TextFieldFocusChangedEvent(false).
+                    // Данный код в MainWindow_PreviewMouseLeftButtonDown должен гарантировать,
+                    // что LostFocus на TextBox действительно произойдет.
                 }
-                currentElement = VisualTreeHelper.GetParent(currentElement);
-            }
-            return false;
-        }
 
-        // Вспомогательный метод для поиска родителя определенного типа
-        public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
-        {
-            DependencyObject? parentObject = VisualTreeHelper.GetParent(child);
-            if (parentObject == null) return null;
-            T? parent = parentObject as T;
-            if (parent != null)
-                return parent;
-            else
-                return FindParent<T>(parentObject);
+                // Сбрасываем фокус с клавиатуры, чтобы LostFocus на TextBox сработал, если он был активен.
+                FocusManager.SetFocusedElement(this, this);
+                Keyboard.ClearFocus();
+
+                // MainViewModel.ActiveInputTarget должен обновиться через TextFieldFocusChangedEvent(false),
+                // которое публикуется из сеттера IsFocused соответствующего TextFieldViewModel,
+                // когда его TextBox теряет фокус.
+                // Если же мы хотим принудительно указать, что ввод теперь не в TextField1/2/3:
+                if (_mainViewModel.ActiveInputTarget == 1)
+                {
+                    // Это нужно, если LostFocus не сработал или сработал с задержкой.
+                    // TextFieldFocusChangedEvent(false) должен был бы уже установить ActiveInputTarget = 0.
+                    // Если мы вызовем это здесь снова, это может быть избыточно, но гарантирует состояние.
+                     _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(false);
+                }
+            }
         }
     }
 }
