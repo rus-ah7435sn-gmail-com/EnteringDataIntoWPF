@@ -2,6 +2,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using MyPrismApp.ViewModels;
 using Prism.Mvvm;
+using System.Windows;
 
 namespace MyPrismApp.Views
 {
@@ -18,6 +19,15 @@ namespace MyPrismApp.Views
             if (this.DataContext is TextFieldViewModel3 vm && vm.GetMainViewModel() is MainViewModel mainVM)
             {
                 mainVM.SetFocusedViewModel(vm);
+            }
+        }
+
+        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MyPrismApp.ViewModels.TextFieldViewModel3 viewModel)
+            {
+                var mainViewModel = viewModel.GetMainViewModel();
+                mainViewModel?.SetFocusedViewModel(viewModel);
             }
         }
     }
