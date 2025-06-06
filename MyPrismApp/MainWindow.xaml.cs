@@ -1,21 +1,22 @@
 using Prism.Events;
 using MyPrismApp.ViewModels;
-using MyPrismApp.ViewModels.Events;
+using MyPrismApp.Views; // Для проверки типов TextFieldView1/2/3 и InputFieldView
 using System.Windows;
-using System.Windows.Controls; // Для TextBox
-using System.Windows.Input;   // Для Keyboard, FocusManager, MouseButtonEventArgs
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media; // Для VisualTreeHelper
 
 namespace MyPrismApp
 {
     public partial class MainWindow : Window
     {
-        private readonly IEventAggregator _eventAggregator;
+        private readonly IEventAggregator _eventAggregator; // Может быть не нужен здесь напрямую уже
         private readonly MainViewModel _mainViewModel;
 
         public MainWindow(IEventAggregator eventAggregator, MainViewModel mainViewModel)
         {
             InitializeComponent();
-            _eventAggregator = eventAggregator;
+            _eventAggregator = eventAggregator; // Сохраняем, если понадобится для других целей
             _mainViewModel = mainViewModel;
 
             this.Loaded += MainWindow_Loaded;
@@ -25,54 +26,59 @@ namespace MyPrismApp
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // Убираем фокус с любого элемента при запуске
-            FocusManager.SetFocusedElement(this, this); // Фокус на само окно
-            Keyboard.ClearFocus(); // Очищаем логический фокус
-
-            // Убедимся, что MainViewModel знает, что активных полей нет
-            // Это уже должно быть так по инициализации ActiveInputTarget = 0,
-            // но на всякий случай можно опубликовать событие, если это необходимо.
-            // _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(false);
-            // Однако, это может быть излишним и вызвать ненужные обновления.
-            // Инициализации ActiveInputTarget = 0 в MainViewModel должно быть достаточно.
+            FocusManager.SetFocusedElement(this, this);
+            Keyboard.ClearFocus();
+            // Устанавливаем начальный FocusedViewModel в null (это уже default для свойства)
+            // _mainViewModel.SetFocusedViewModel(null); // Это уже должно быть так по умолчанию
         }
 
         private void MainWindow_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (!(e.OriginalSource is TextBox))
+            // Проверяем, был ли клик на одном из TextFieldView1/2/3 или InputFieldView
+            DependencyObject? current = e.OriginalSource as DependencyObject;
+            bool clickOnFocusableControl = false;
+
+            while (current != null)
             {
-                // Если клик был не на TextBox из наших регионов или InputField,
-                // то это считается кликом "вне" целевых полей.
-                var currentFocusedElement = FocusManager.GetFocusedElement(this);
-                bool wasOurTextBoxFocused = false;
-
-                if (currentFocusedElement is TextBox textBox)
+                if (current is TextFieldView1 || current is TextFieldView2 || current is TextFieldView3 || current is InputFieldView)
                 {
-                    // Проверить, относится ли этот TextBox к TextFieldView1/2/3
-                    // Это можно сделать, проверяя DataContext TextBox или его родительских элементов.
-                    // Для простоты, если любой TextBox теряет фокус из-за клика не по TextBox,
-                    // мы считаем, что TextField-ы теряют "активность" для ввода из MainInput.
-                    // Это поведение уже обрабатывается через IsFocused свойство в TextFieldViewModel1/2/3
-                    // и публикацию TextFieldFocusChangedEvent(false).
-                    // Данный код в MainWindow_PreviewMouseLeftButtonDown должен гарантировать,
-                    // что LostFocus на TextBox действительно произойдет.
+                    clickOnFocusableControl = true;
+                    break;
                 }
-
-                // Сбрасываем фокус с клавиатуры, чтобы LostFocus на TextBox сработал, если он был активен.
-                FocusManager.SetFocusedElement(this, this);
-                Keyboard.ClearFocus();
-
-                // MainViewModel.ActiveInputTarget должен обновиться через TextFieldFocusChangedEvent(false),
-                // которое публикуется из сеттера IsFocused соответствующего TextFieldViewModel,
-                // когда его TextBox теряет фокус.
-                // Если же мы хотим принудительно указать, что ввод теперь не в TextField1/2/3:
-                if (_mainViewModel.ActiveInputTarget == 1)
+                // Если кликнули на TextBox внутри InputFieldView, это тоже считается "фокусным" контролом
+                if (current is TextBox textBox && ParentIsInputFieldView(textBox))
                 {
-                    // Это нужно, если LostFocus не сработал или сработал с задержкой.
-                    // TextFieldFocusChangedEvent(false) должен был бы уже установить ActiveInputTarget = 0.
-                    // Если мы вызовем это здесь снова, это может быть избыточно, но гарантирует состояние.
-                     _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(false);
+                    clickOnFocusableControl = true;
+                    break;
                 }
+                current = VisualTreeHelper.GetParent(current);
             }
+
+            if (!clickOnFocusableControl)
+            {
+                // Клик был вне наших целевых UserControl-ов.
+                _mainViewModel.SetFocusedViewModel(null);
+                // Также убираем реальный фокус клавиатуры, если он где-то был, чтобы соответствовать логическому состоянию
+                Keyboard.ClearFocus();
+                FocusManager.SetFocusedElement(this, this); // Фокус на окно
+            }
+            // Если clickOnFocusableControl == true, то соответствующий UserControl (TextFieldViewX или InputFieldView)
+            // сам обработает свой PreviewMouseLeftButtonDown и установит нужный FocusedViewModel или ничего не сделает.
+            // InputFieldView сам по себе не устанавливает FocusedViewModel, но клик по нему не должен сбрасывать фокус, если он уже установлен на него (это будет сделано в след. шаге)
+        }
+
+        private bool ParentIsInputFieldView(DependencyObject? child)
+        {
+            DependencyObject? parent = VisualTreeHelper.GetParent(child);
+            while (parent != null)
+            {
+                if (parent is InputFieldView)
+                {
+                    return true;
+                }
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            return false;
         }
     }
 }

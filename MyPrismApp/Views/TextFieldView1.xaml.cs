@@ -1,15 +1,27 @@
 using System.Windows.Controls;
+using System.Windows.Input;
+using MyPrismApp.ViewModels; // Для доступа к MainViewModel и TextFieldViewModel1
+using Prism.Mvvm; // Для ViewModelLocator
 
 namespace MyPrismApp.Views
 {
-    /// <summary>
-    /// Interaction logic for TextFieldView1.xaml
-    /// </summary>
     public partial class TextFieldView1 : UserControl
     {
         public TextFieldView1()
         {
             InitializeComponent();
+            this.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
+        }
+
+        private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (this.DataContext is TextFieldViewModel1 vm && vm.GetMainViewModel() is MainViewModel mainVM)
+            {
+                mainVM.SetFocusedViewModel(vm);
+                // Остановить дальнейшую обработку события не нужно, чтобы клик мог, например,
+                // инициировать потерю фокуса у другого элемента, если это необходимо системе.
+                // e.Handled = true; // - возможно, не нужно
+            }
         }
     }
 }

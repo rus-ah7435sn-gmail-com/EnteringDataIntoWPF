@@ -1,6 +1,7 @@
 using Prism.Mvvm;
-using Prism.Events; // Для EventAggregator
-using MyPrismApp.ViewModels.Events; // Пространство имен для кастомных событий
+using Prism.Events;
+using MyPrismApp.ViewModels.Events;
+using System; // For Nullable reference types
 
 namespace MyPrismApp.ViewModels
 {
@@ -16,46 +17,57 @@ namespace MyPrismApp.ViewModels
             {
                 if (SetProperty(ref _sharedInputText, value))
                 {
-                    // Публикуем событие, что текст в Поле Ввода изменился
+                    // Публикуем событие, что текст в Поле Ввода (SharedInputText) изменился
                     _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Publish(_sharedInputText);
                 }
             }
         }
 
-        // Свойство для отслеживания, активны ли основные поля ввода
-        // 0 - не активны (ввод идет в Disabled)
-        // 1 - активны TextFieldView1/2/3
-        private int _activeInputTarget = 0; // 0 = Disabled, 1 = TextField1/2/3
-        public int ActiveInputTarget
+        private BindableBase? _focusedViewModel;
+        public BindableBase? FocusedViewModel
         {
-            get => _activeInputTarget;
-            set => SetProperty(ref _activeInputTarget, value);
-        }
+            get { return _focusedViewModel; }
+            private set
+            {
+                // Сравниваем не просто по ссылке, а учитываем null
+                if (!object.Equals(_focusedViewModel, value))
+                {
+                    // var oldFocusedViewModel = _focusedViewModel; // Сохраняем старое значение если нужно для события
+                    _focusedViewModel = value;
+                    RaisePropertyChanged(nameof(FocusedViewModel)); // Уведомляем об изменении
 
+                    // После изменения FocusedViewModel, нужно инициировать обновление текста.
+                    // Публикация SharedInputTextChangedEvent заставит всех подписчиков перепроверить свое состояние.
+                    _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Publish(SharedInputText);
+
+                    // Можно также отправить специфическое событие о смене FocusedViewModel, если это нужно другим частям системы.
+                    // _eventAggregator.GetEvent<FocusedViewModelChangedEvent>().Publish(new FocusedViewModelChangedEventArgs(oldFocusedViewModel, _focusedViewModel));
+                    // Пока это не требуется по плану.
+                }
+            }
+        }
 
         public MainViewModel(IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
-
-            // Подписка на событие получения фокуса одним из TextFieldView 1/2/3
-            _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Subscribe(OnTextFieldFocusChanged);
             // Подписка на событие ввода текста непосредственно в InputFieldViewModel
             _eventAggregator.GetEvent<InputFieldChangedEvent>().Subscribe(OnInputFieldChanged);
+            // Старая подписка на TextFieldFocusChangedEvent удалена, так как фокус управляется через FocusedViewModel
         }
 
         private void OnInputFieldChanged(string newText)
         {
-            // Это событие будет вызываться из InputFieldViewModel
-            // На его основе обновляем либо активные поля, либо DisabledTextFieldView
-            SharedInputText = newText; // Обновляем наше свойство и публикуем SharedInputTextChangedEvent
+            // Этот текст пришел из InputFieldView. Записываем его в SharedInputText.
+            // SharedInputText затем вызовет SharedInputTextChangedEvent.
+            // Подписчики (TextFieldViewModels и DisabledTextFieldViewModel) решат, что с ним делать,
+            // основываясь на FocusedViewModel.
+            SharedInputText = newText;
         }
 
-        private void OnTextFieldFocusChanged(bool hasFocus)
+        public void SetFocusedViewModel(BindableBase? viewModel)
         {
-            ActiveInputTarget = hasFocus ? 1 : 0;
-            // При изменении фокуса, если текст уже есть в SharedInputText,
-            // его нужно "перенаправить"
-            _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Publish(SharedInputText);
+            // Этот метод будет вызываться извне (например, из обработчиков кликов в Views или VM)
+            FocusedViewModel = viewModel;
         }
     }
 }

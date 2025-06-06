@@ -16,32 +16,29 @@ namespace MyPrismApp.ViewModels
             set { SetProperty(ref _textValue, value); }
         }
 
-        private bool _isFocused;
-        public bool IsFocused
-        {
-            get => _isFocused;
-            set
-            {
-                if (SetProperty(ref _isFocused, value))
-                {
-                    _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(_isFocused);
-                }
-            }
-        }
-
         public TextFieldViewModel2(IEventAggregator eventAggregator, MainViewModel mainViewModel)
         {
             _eventAggregator = eventAggregator;
             _mainViewModel = mainViewModel;
+
             _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Subscribe(OnSharedInputTextChanged);
         }
 
         private void OnSharedInputTextChanged(string newText)
         {
-            if (_mainViewModel.ActiveInputTarget == 1)
+            if (_mainViewModel.FocusedViewModel == this)
             {
                 TextValue = newText;
             }
+            else
+            {
+                TextValue = string.Empty;
+            }
+        }
+
+        public MainViewModel GetMainViewModel()
+        {
+            return _mainViewModel;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace MyPrismApp.ViewModels
     public class TextFieldViewModel1 : BindableBase
     {
         private readonly IEventAggregator _eventAggregator;
-        private MainViewModel _mainViewModel; // Нужна ссылка или способ узнать ActiveInputTarget
+        private MainViewModel _mainViewModel;
 
         private string _textValue = string.Empty;
         public string TextValue
@@ -16,36 +16,34 @@ namespace MyPrismApp.ViewModels
             set { SetProperty(ref _textValue, value); }
         }
 
-        // Свойство для привязки к IsFocused из View
-        private bool _isFocused;
-        public bool IsFocused
-        {
-            get => _isFocused;
-            set
-            {
-                if (SetProperty(ref _isFocused, value))
-                {
-                    // Сообщаем MainViewModel об изменении фокуса
-                    _eventAggregator.GetEvent<TextFieldFocusChangedEvent>().Publish(_isFocused);
-                }
-            }
-        }
-
         public TextFieldViewModel1(IEventAggregator eventAggregator, MainViewModel mainViewModel)
         {
             _eventAggregator = eventAggregator;
-            _mainViewModel = mainViewModel; // Инъекция MainViewModel (нужно настроить в DI контейнере)
+            _mainViewModel = mainViewModel;
 
             _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Subscribe(OnSharedInputTextChanged);
         }
 
         private void OnSharedInputTextChanged(string newText)
         {
-            // Обновляемся только если фокус на нас ИЛИ если мы часть группы активных полей
-            if (_mainViewModel.ActiveInputTarget == 1) // 1 означает, что TextField1/2/3 активны
+            if (_mainViewModel.FocusedViewModel == this)
             {
                 TextValue = newText;
             }
+            else
+            {
+                // Если это поле не является "фокусным", его текст должен быть очищен.
+                // При смене FocusedViewModel в MainViewModel публикуется SharedInputTextChangedEvent,
+                // тогда этот метод вызовется для всех TextFieldVM. Тот, кто был FocusedViewModel,
+                // перестанет им быть и должен очиститься.
+                // Тот, кто стал FocusedViewModel, обновится.
+                TextValue = string.Empty;
+            }
+        }
+
+        public MainViewModel GetMainViewModel()
+        {
+            return _mainViewModel;
         }
     }
 }

@@ -9,6 +9,8 @@ namespace MyPrismApp.ViewModels
     public class InputFieldViewModel : BindableBase
     {
         private readonly IEventAggregator _eventAggregator;
+        private readonly MainViewModel _mainViewModel; // Добавлено
+
         private string _inputText = string.Empty;
         public string InputText
         {
@@ -25,17 +27,28 @@ namespace MyPrismApp.ViewModels
 
         public DelegateCommand EnterKeyPressedCommand { get; private set; }
 
-        public InputFieldViewModel(IEventAggregator eventAggregator)
+        public InputFieldViewModel(IEventAggregator eventAggregator, MainViewModel mainViewModel) // MainViewModel добавлен
         {
             _eventAggregator = eventAggregator;
+            _mainViewModel = mainViewModel; // Сохраняем ссылку
             EnterKeyPressedCommand = new DelegateCommand(OnEnterKeyPressed);
         }
 
         private void OnEnterKeyPressed()
         {
-            // Публикуем событие для переноса текста и очистки
-            _eventAggregator.GetEvent<TransferInputToDisabledEvent>().Publish(InputText);
-            InputText = string.Empty; // Очищаем поле ввода
+            if (_mainViewModel.FocusedViewModel == null)
+            {
+                _eventAggregator.GetEvent<TransferInputToDisabledEvent>().Publish(InputText);
+            }
+            // Очищаем поле ввода в любом случае, когда нажат Enter в этом поле.
+            // Если FocusedViewModel != null (т.е. фокус на TextFieldView1/2/3),
+            // Enter просто очистит InputField, не передавая текст в DisabledTextFieldView.
+            InputText = string.Empty;
+        }
+
+        public MainViewModel GetMainViewModel()
+        {
+            return _mainViewModel;
         }
     }
 }
