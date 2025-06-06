@@ -19,8 +19,8 @@ namespace MyPrismApp.ViewModels
             {
                 if (SetProperty(ref _inputText, value))
                 {
-                    // Сообщаем MainViewModel об изменении текста в этом поле
-                    _eventAggregator.GetEvent<InputFieldChangedEvent>().Publish(_inputText);
+                    // Событие больше не публикуется на каждое изменение
+                    // _eventAggregator.GetEvent<InputFieldChangedEvent>().Publish(_inputText);
                 }
             }
         }
@@ -36,13 +36,18 @@ namespace MyPrismApp.ViewModels
 
         private void OnEnterKeyPressed()
         {
-            if (_mainViewModel.FocusedViewModel == null)
+            if (_mainViewModel.FocusedViewModel != null)
             {
+                // Если есть активный TextFieldViewModel, передаем текст ему
+                _mainViewModel.RelayInputToFocusedViewModel(InputText);
+            }
+            else
+            {
+                // Иначе, передаем текст в DisabledTextFieldView
                 _eventAggregator.GetEvent<TransferInputToDisabledEvent>().Publish(InputText);
             }
-            // Очищаем поле ввода в любом случае, когда нажат Enter в этом поле.
-            // Если FocusedViewModel != null (т.е. фокус на TextFieldView1/2/3),
-            // Enter просто очистит InputField, не передавая текст в DisabledTextFieldView.
+
+            // Очищаем поле ввода в любом случае
             InputText = string.Empty;
         }
 

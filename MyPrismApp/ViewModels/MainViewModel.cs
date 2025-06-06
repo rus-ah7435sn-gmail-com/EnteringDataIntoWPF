@@ -51,23 +51,34 @@ namespace MyPrismApp.ViewModels
         {
             _eventAggregator = eventAggregator;
             // Подписка на событие ввода текста непосредственно в InputFieldViewModel
-            _eventAggregator.GetEvent<InputFieldChangedEvent>().Subscribe(OnInputFieldChanged);
+            // _eventAggregator.GetEvent<InputFieldChangedEvent>().Subscribe(OnInputFieldChanged); // Больше не подписываемся
             // Старая подписка на TextFieldFocusChangedEvent удалена, так как фокус управляется через FocusedViewModel
         }
 
-        private void OnInputFieldChanged(string newText)
-        {
-            // Этот текст пришел из InputFieldView. Записываем его в SharedInputText.
-            // SharedInputText затем вызовет SharedInputTextChangedEvent.
-            // Подписчики (TextFieldViewModels и DisabledTextFieldViewModel) решат, что с ним делать,
-            // основываясь на FocusedViewModel.
-            SharedInputText = newText;
-        }
+        // private void OnInputFieldChanged(string newText) // Метод больше не нужен
+        // {
+        //     // Этот текст пришел из InputFieldView. Записываем его в SharedInputText.
+        //     // SharedInputText затем вызовет SharedInputTextChangedEvent.
+        //     // Подписчики (TextFieldViewModels и DisabledTextFieldViewModel) решат, что с ним делать,
+        //     // основываясь на FocusedViewModel.
+        //     SharedInputText = newText;
+        // }
 
         public void SetFocusedViewModel(BindableBase? viewModel)
         {
             // Этот метод будет вызываться извне (например, из обработчиков кликов в Views или VM)
             FocusedViewModel = viewModel;
+        }
+
+        public void RelayInputToFocusedViewModel(string text)
+        {
+            if (FocusedViewModel != null)
+            {
+                // Устанавливаем SharedInputText, что вызовет SharedInputTextChangedEvent.
+                // TextFieldViewModel, который является FocusedViewModel, обработает это событие
+                // и установит свой TextValue. Остальные TextFieldViewModel очистятся.
+                SharedInputText = text;
+            }
         }
     }
 }
