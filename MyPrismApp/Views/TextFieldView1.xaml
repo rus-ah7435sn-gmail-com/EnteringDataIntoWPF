@@ -9,6 +9,6 @@
              mc:Ignorable="d"
              d:DesignHeight="50" d:DesignWidth="300">
     <Grid>
-        <TextBox Text="{Binding TextValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Focusable="False" GotFocus="TextBox_GotFocus" />
+        <TextBox Text="{Binding TextValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Focusable="True" IsEnabled="True" GotFocus="TextBox_GotFocus" />
     </Grid>
 </UserControl>
