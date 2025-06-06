@@ -1,10 +1,10 @@
-using Prism.Regions; // Required for IRegionManager
 using System.Windows;
 using System.Windows.Controls; // Required for TextBox, UserControl
 using System.Windows.Input;  // Required for InputEventArgs and FocusManager
 using System.Windows.Media;  // Required for VisualTreeHelper
 using MyPrismApp.ViewModels; // Required for DisabledTextFieldViewModel
 using MyPrismApp.Views;    // Required for view types if checking them
+using Prism.Regions;
 
 namespace MyPrismApp
 {
