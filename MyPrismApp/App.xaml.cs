@@ -1,4 +1,4 @@
-using Prism.DryIoc;
+using Prism.Unity;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
