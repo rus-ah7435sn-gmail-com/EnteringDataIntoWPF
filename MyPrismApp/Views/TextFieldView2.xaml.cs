@@ -11,16 +11,16 @@ namespace MyPrismApp.Views
         public TextFieldView2()
         {
             InitializeComponent();
-            this.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
+            // this.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
         }
 
-        private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (this.DataContext is TextFieldViewModel2 vm && vm.GetMainViewModel() is MainViewModel mainVM)
-            {
-                mainVM.SetFocusedViewModel(vm);
-            }
-        }
+        // private void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        // {
+        //     if (this.DataContext is TextFieldViewModel2 vm && vm.GetMainViewModel() is MainViewModel mainVM)
+        //     {
+        //         mainVM.SetFocusedViewModel(vm);
+        //     }
+        // }
 
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
