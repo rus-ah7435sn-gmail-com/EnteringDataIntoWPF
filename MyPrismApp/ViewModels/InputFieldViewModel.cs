@@ -1,7 +1,5 @@
 using Prism.Mvvm;
 using Prism.Commands;
-using MyPrismApp.ViewModels.Events;
-using Prism.Events;
 
 namespace MyPrismApp.ViewModels
 {
@@ -28,6 +26,11 @@ namespace MyPrismApp.ViewModels
         {
             _mainViewModel.RelayInputToFocusedViewModel(InputText);
             InputText = string.Empty;
+        }
+
+        public void SetFocus()
+        {
+            _mainViewModel.SetFocusedViewModel(null);
         }
     }
 }

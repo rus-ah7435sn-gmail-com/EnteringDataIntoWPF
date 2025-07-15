@@ -1,4 +1,6 @@
+using System.Windows;
 using System.Windows.Controls;
+using MyPrismApp.ViewModels;
 
 namespace MyPrismApp.Views
 {
@@ -7,6 +9,14 @@ namespace MyPrismApp.Views
         public InputFieldView()
         {
             InitializeComponent();
+        }
+
+        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is InputFieldViewModel viewModel)
+            {
+                viewModel.SetFocus();
+            }
         }
     }
 }
