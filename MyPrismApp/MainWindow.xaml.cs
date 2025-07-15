@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using MyPrismApp.ViewModels;
 
 namespace MyPrismApp
@@ -18,11 +19,13 @@ namespace MyPrismApp
 
         private void Grid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.OriginalSource is TextBox textBox)
+            var textBox = FindParent<TextBox>(e.OriginalSource as DependencyObject);
+
+            if (textBox != null)
             {
                 if (textBox.DataContext is ITextFieldViewModel vm)
                 {
-                    _mainViewModel.SetFocusedViewModel(vm as BindableBase);
+                    _mainViewModel.SetFocusedViewModel(vm as Prism.Mvvm.BindableBase);
                 }
             }
             else
@@ -30,6 +33,20 @@ namespace MyPrismApp
                 _mainViewModel.SetFocusedViewModel(null);
                 Keyboard.ClearFocus();
             }
+        }
+
+        private static T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+
+            if (parentObject == null)
+                return null;
+
+            T parent = parentObject as T;
+            if (parent != null)
+                return parent;
+            else
+                return FindParent<T>(parentObject);
         }
     }
 }
