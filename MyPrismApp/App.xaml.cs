@@ -3,7 +3,7 @@ using Prism.Regions;
 using System.Windows;
 using MyPrismApp.Views;
 using MyPrismApp.ViewModels;
-using Prism.DryIoc;
+using Prism.Unity;
 
 namespace MyPrismApp
 {
