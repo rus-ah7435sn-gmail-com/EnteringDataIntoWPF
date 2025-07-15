@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:MyPrismApp"
         xmlns:prism="http://prismlibrary.com/"
         mc:Ignorable="d"
-        Title="My Prism App - Regions" Height="450" Width="800">
-    <Grid Margin="10">
+        Title="{Binding WindowTitle}" Height="450" Width="800">
+    <Grid Margin="10" PreviewMouseLeftButtonDown="Grid_PreviewMouseLeftButtonDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
