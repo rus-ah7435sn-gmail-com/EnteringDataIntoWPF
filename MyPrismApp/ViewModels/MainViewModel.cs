@@ -3,16 +3,14 @@ using Prism.Events;
 using MyPrismApp.ViewModels.Events;
 using System;
 using System.Linq;
+using Prism.Ioc;
 
 namespace MyPrismApp.ViewModels
 {
     public class MainViewModel : BindableBase
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly TextFieldViewModel1 _textFieldViewModel1;
-        private readonly TextFieldViewModel2 _textFieldViewModel2;
-        private readonly TextFieldViewModel3 _textFieldViewModel3;
-        private readonly DisabledTextFieldViewModel _disabledTextFieldViewModel;
+        private readonly IContainerProvider _containerProvider;
 
         private string _windowTitle = "My Prism App - Regions";
         public string WindowTitle
@@ -48,17 +46,22 @@ namespace MyPrismApp.ViewModels
             }
         }
 
-        public MainViewModel(IEventAggregator eventAggregator,
-                               TextFieldViewModel1 textFieldViewModel1,
-                               TextFieldViewModel2 textFieldViewModel2,
-                               TextFieldViewModel3 textFieldViewModel3,
-                               DisabledTextFieldViewModel disabledTextFieldViewModel)
+        public MainViewModel(IEventAggregator eventAggregator, IContainerProvider containerProvider)
         {
             _eventAggregator = eventAggregator;
-            _textFieldViewModel1 = textFieldViewModel1;
-            _textFieldViewModel2 = textFieldViewModel2;
-            _textFieldViewModel3 = textFieldViewModel3;
-            _disabledTextFieldViewModel = disabledTextFieldViewModel;
+            _containerProvider = containerProvider;
+
+            var textFieldViewModel1 = _containerProvider.Resolve<TextFieldViewModel1>();
+            textFieldViewModel1.MainViewModel = this;
+
+            var textFieldViewModel2 = _containerProvider.Resolve<TextFieldViewModel2>();
+            textFieldViewModel2.MainViewModel = this;
+
+            var textFieldViewModel3 = _containerProvider.Resolve<TextFieldViewModel3>();
+            textFieldViewModel3.MainViewModel = this;
+
+            var disabledTextFieldViewModel = _containerProvider.Resolve<DisabledTextFieldViewModel>();
+            disabledTextFieldViewModel.MainViewModel = this;
         }
 
         public void SetFocusedViewModel(BindableBase? viewModel)
@@ -67,7 +70,10 @@ namespace MyPrismApp.ViewModels
 
             var allTextViewModels = new BindableBase[]
             {
-                _textFieldViewModel1, _textFieldViewModel2, _textFieldViewModel3, _disabledTextFieldViewModel
+                _containerProvider.Resolve<TextFieldViewModel1>(),
+                _containerProvider.Resolve<TextFieldViewModel2>(),
+                _containerProvider.Resolve<TextFieldViewModel3>(),
+                _containerProvider.Resolve<DisabledTextFieldViewModel>()
             };
 
             foreach (var vm in allTextViewModels.OfType<ITextFieldViewModel>())

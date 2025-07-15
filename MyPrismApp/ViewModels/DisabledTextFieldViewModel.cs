@@ -4,7 +4,7 @@ namespace MyPrismApp.ViewModels
 {
     public class DisabledTextFieldViewModel : BindableBase, ITextFieldViewModel
     {
-        private readonly MainViewModel _mainViewModel;
+        public MainViewModel MainViewModel { get; set; }
 
         private string _textValue = string.Empty;
         public string TextValue
@@ -13,14 +13,13 @@ namespace MyPrismApp.ViewModels
             set { SetProperty(ref _textValue, value); }
         }
 
-        public DisabledTextFieldViewModel(MainViewModel mainViewModel)
+        public DisabledTextFieldViewModel()
         {
-            _mainViewModel = mainViewModel;
         }
 
         public void SetFocus()
         {
-            _mainViewModel.SetFocusedViewModel(this);
+            MainViewModel.SetFocusedViewModel(this);
         }
     }
 }

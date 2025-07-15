@@ -7,7 +7,7 @@ namespace MyPrismApp.ViewModels
     public class TextFieldViewModel3 : BindableBase, ITextFieldViewModel
     {
         private readonly IEventAggregator _eventAggregator;
-        private readonly MainViewModel _mainViewModel;
+        public MainViewModel MainViewModel { get; set; }
 
         private string _textValue = string.Empty;
         public string TextValue
@@ -16,17 +16,15 @@ namespace MyPrismApp.ViewModels
             set { SetProperty(ref _textValue, value); }
         }
 
-        public TextFieldViewModel3(IEventAggregator eventAggregator, MainViewModel mainViewModel)
+        public TextFieldViewModel3(IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            _mainViewModel = mainViewModel;
-
             _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Subscribe(OnSharedInputTextChanged, ThreadOption.UIThread);
         }
 
         private void OnSharedInputTextChanged(string newText)
         {
-            if (_mainViewModel.FocusedViewModel == this)
+            if (MainViewModel.FocusedViewModel == this)
             {
                 TextValue = newText;
             }
@@ -34,7 +32,7 @@ namespace MyPrismApp.ViewModels
 
         public void SetFocus()
         {
-            _mainViewModel.SetFocusedViewModel(this);
+            MainViewModel.SetFocusedViewModel(this);
         }
     }
 }
