@@ -1,13 +1,9 @@
-using Prism.Unity;
 using System.Windows;
 using System.Windows.Controls;
 using MyPrismApp.ViewModels;
 
 namespace MyPrismApp.Views
 {
-    /// <summary>
-    /// Interaction logic for DisabledTextFieldView.xaml
-    /// </summary>
     public partial class DisabledTextFieldView : UserControl
     {
         public DisabledTextFieldView()
@@ -17,10 +13,9 @@ namespace MyPrismApp.Views
 
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (DataContext is DisabledTextFieldViewModel viewModel &&
-                (Application.Current as PrismApplication).Container.Resolve(typeof(MainViewModel)) is MainViewModel mainViewModel)
+            if (DataContext is DisabledTextFieldViewModel viewModel)
             {
-                mainViewModel.SetFocusedViewModel(viewModel);
+                viewModel.SetFocus();
             }
         }
     }

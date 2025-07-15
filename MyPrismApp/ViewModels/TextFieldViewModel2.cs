@@ -7,7 +7,7 @@ namespace MyPrismApp.ViewModels
     public class TextFieldViewModel2 : BindableBase
     {
         private readonly IEventAggregator _eventAggregator;
-        private MainViewModel _mainViewModel;
+        private readonly MainViewModel _mainViewModel;
 
         private string _textValue = string.Empty;
         public string TextValue
@@ -30,15 +30,11 @@ namespace MyPrismApp.ViewModels
             {
                 TextValue = newText;
             }
-            else
-            {
-                TextValue = string.Empty;
-            }
         }
 
-        public MainViewModel GetMainViewModel()
+        public void SetFocus()
         {
-            return _mainViewModel;
+            _mainViewModel.SetFocusedViewModel(this);
         }
     }
 }

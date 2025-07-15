@@ -26,8 +26,7 @@ namespace MyPrismApp.Views
         {
             if (DataContext is MyPrismApp.ViewModels.TextFieldViewModel2 viewModel)
             {
-                var mainViewModel = viewModel.GetMainViewModel();
-                mainViewModel?.SetFocusedViewModel(viewModel);
+                viewModel.SetFocus();
             }
         }
     }

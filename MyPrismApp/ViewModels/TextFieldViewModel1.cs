@@ -7,7 +7,7 @@ namespace MyPrismApp.ViewModels
     public class TextFieldViewModel1 : BindableBase
     {
         private readonly IEventAggregator _eventAggregator;
-        private MainViewModel _mainViewModel;
+        private readonly MainViewModel _mainViewModel;
 
         private string _textValue = string.Empty;
         public string TextValue
@@ -30,20 +30,11 @@ namespace MyPrismApp.ViewModels
             {
                 TextValue = newText;
             }
-            else
-            {
-                // Если это поле не является "фокусным", его текст должен быть очищен.
-                // При смене FocusedViewModel в MainViewModel публикуется SharedInputTextChangedEvent,
-                // тогда этот метод вызовется для всех TextFieldVM. Тот, кто был FocusedViewModel,
-                // перестанет им быть и должен очиститься.
-                // Тот, кто стал FocusedViewModel, обновится.
-                TextValue = string.Empty;
-            }
         }
 
-        public MainViewModel GetMainViewModel()
+        public void SetFocus()
         {
-            return _mainViewModel;
+            _mainViewModel.SetFocusedViewModel(this);
         }
     }
 }

@@ -39,7 +39,7 @@ namespace MyPrismApp.ViewModels
                 {
                     _focusedViewModel = value;
                     RaisePropertyChanged(nameof(FocusedViewModel));
-                    _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Publish(SharedInputText);
+                    _eventAggregator.GetEvent<SharedInputTextChangedEvent>().Publish(string.Empty);
                 }
             }
         }
