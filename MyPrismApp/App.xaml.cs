@@ -1,10 +1,9 @@
-using Prism.Unity;
 using Prism.Ioc;
-using Prism.Modularity;
 using Prism.Regions;
 using System.Windows;
 using MyPrismApp.Views;
 using MyPrismApp.ViewModels;
+using Prism.DryIoc;
 
 namespace MyPrismApp
 {
@@ -18,14 +17,10 @@ namespace MyPrismApp
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterSingleton<MainViewModel>();
-            // ViewModelLocator автоматически разрешит зависимости для ViewModel, создаваемых для View в регионах,
-            // если MainViewModel зарегистрирован как синглтон.
-            // EventAggregator уже зарегистрирован Prism.
-        }
-
-        protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
-        {
-            base.ConfigureModuleCatalog(moduleCatalog);
+            containerRegistry.RegisterSingleton<TextFieldViewModel1>();
+            containerRegistry.RegisterSingleton<TextFieldViewModel2>();
+            containerRegistry.RegisterSingleton<TextFieldViewModel3>();
+            containerRegistry.RegisterSingleton<DisabledTextFieldViewModel>();
         }
 
         protected override void OnInitialized()

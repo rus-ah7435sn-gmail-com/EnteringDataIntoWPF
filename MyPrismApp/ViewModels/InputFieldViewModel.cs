@@ -27,10 +27,5 @@ namespace MyPrismApp.ViewModels
             _mainViewModel.RelayInputToFocusedViewModel(InputText);
             InputText = string.Empty;
         }
-
-        public void SetFocus()
-        {
-            _mainViewModel.SetFocusedViewModel(null);
-        }
     }
 }

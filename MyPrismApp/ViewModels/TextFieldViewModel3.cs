@@ -4,7 +4,7 @@ using MyPrismApp.ViewModels.Events;
 
 namespace MyPrismApp.ViewModels
 {
-    public class TextFieldViewModel3 : BindableBase
+    public class TextFieldViewModel3 : BindableBase, ITextFieldViewModel
     {
         private readonly IEventAggregator _eventAggregator;
         private readonly MainViewModel _mainViewModel;

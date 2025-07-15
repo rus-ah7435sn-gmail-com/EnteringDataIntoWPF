@@ -2,7 +2,7 @@ using Prism.Mvvm;
 
 namespace MyPrismApp.ViewModels
 {
-    public class DisabledTextFieldViewModel : BindableBase
+    public class DisabledTextFieldViewModel : BindableBase, ITextFieldViewModel
     {
         private readonly MainViewModel _mainViewModel;
 

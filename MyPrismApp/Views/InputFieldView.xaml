@@ -10,7 +10,7 @@
              mc:Ignorable="d"
              d:DesignHeight="50" d:DesignWidth="300">
     <Grid>
-        <TextBox Text="{Binding InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" GotFocus="TextBox_GotFocus">
+        <TextBox Text="{Binding InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center">
             <i:Interaction.Triggers>
                 <i:KeyTrigger Key="Enter">
                     <i:InvokeCommandAction Command="{Binding EnterKeyPressedCommand}" />
